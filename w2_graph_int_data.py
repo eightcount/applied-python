@@ -1,3 +1,5 @@
+#! /usr/bin/env python
+
 '''
 Using SNMPv3 create two SVG image files.  The first image file should graph input and output octets on interface FA4 on pynet-rtr1 every five minutes for an hour.  Use the pygal library to create the SVG graph file.  
 
