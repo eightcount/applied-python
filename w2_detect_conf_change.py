@@ -80,9 +80,9 @@ def main():
   user_a = ('pysnmp', 'galileo1', 'galileo1')
   
   # Define devices which will be tested
-  device_a = ('50.242.94.227', '7961')
-  device_b = ('50.242.94.227', '8061')
-  dev_list = device_a, device_b
+  ip_addr = '50.242.94.227'
+  device_a = (ip_addr, '7961')
+  device_b = (ip_addr, '8061')
 
   # System Uptime
   oidSysUptime = '1.3.6.1.2.1.1.3.0'
@@ -93,8 +93,9 @@ def main():
   # Uptime when startup config last saved
   oidStartupLastChanged = '1.3.6.1.4.1.9.9.43.1.1.3.0'
 
-  for dev in dev_list:
-    # Gather data
+  for dev in (device_a, device_b):
+    
+  # Gather data
     sys_uptime = snmp_extract(snmp_get_oid_v3(dev, user_a, oidSysUptime)) # sysUptime
     run_last_change = snmp_extract(snmp_get_oid_v3(dev, user_a, oidRunningLastChanged)) # sysUptime @ last running config change
     run_last_save = snmp_extract(snmp_get_oid_v3(dev, user_a, oidRunningLastSaved)) # sysUptime @ last "write" command
