@@ -1,0 +1,102 @@
+#!/usr/bin/env python
+
+from ansible.module_utils.basic import *
+import eapilib
+import json
+
+def vlan_name_check(vlan_output, vlan_id, vlan_name):
+    '''
+    Searching "show vlan" output to determine if the vlan is named correctly
+    '''
+
+    vlan_name_correct = False
+
+    if vlan_output['vlans'][vlan_id]['name'] == vlan_name:
+        vlan_name_correct = True
+    return vlan_name_correct
+
+def vlan_id_check(vlan_output, vlan_id):
+    '''
+    command "show vlan" returns a list with a single element.  That
+    single element is a dictionary of key:value pairs (wich are nested dicts)
+    that is the desired vlan data.  With that dict, we will search to see if
+    the vlan number and vlan name exist
+    '''
+
+    try:
+        x = vlan_output['vlans'][vlan_id]
+        vlan_exists = True
+    except:
+        vlan_exists = False
+    return vlan_exists
+
+def main():
+
+    '''
+    VLAN & VLAN name imput from yml file, updates switch if running config differs
+
+    '''
+
+    # Creates the class AnsibleModule which defines argument parameters
+    module = AnsibleModule(
+        argument_spec = dict(
+        
+            eapi_hostname   = dict(required=True),
+            eapi_port       = dict(required=False),
+            eapi_username   = dict(required=True),
+            eapi_password   = dict(required=True),
+            vlan_id         = dict(required=True),
+            vlan_name       = dict(required=True),
+        )
+    )
+
+   
+    # Device parameters are defined within the ansible hosts file.  This
+    # dict pairs those with script variables 
+    device_params = {
+        'eapi_username': 'username',
+        'eapi_password': 'password',
+        'eapi_hostname': 'hostname',
+        'eapi_port': 'port',
+    }
+
+    device_dict = {}
+
+    # Converts ansible variables to eapi variables
+    for ansible_name, device_name in device_params.items():
+        if ansible_name in module.params:
+            device_dict[device_name] = module.params[ansible_name]
+
+    # Creates connection to switch using above dictionary parameters
+    eapi_conn = eapilib.create_connection(**device_dict)
+
+    vlan_id = module.params['vlan_id']
+    vlan_name = module.params.get('vlan_name')
+
+    # Tests running config and make changes if necesary
+    commands = []
+    vlan_output = eapi_conn.config(['show vlan'])[0]
+
+    vlan_exists = vlan_id_check(vlan_output, vlan_id)
+    if vlan_exists:
+        vlan_name_correct = vlan_name_check(vlan_output, vlan_id, vlan_name)
+    else:
+        vlan_name_correct = False
+
+    if vlan_exists and vlan_name_correct:
+        module.exit_json(msg="VLAN exists and name is correct, nothing to do", changed=False)
+    elif vlan_exists and not vlan_name_correct:
+        commands.append('vlan ' + vlan_id)
+        commands.append('name ' + vlan_name)
+        eapi_conn.config(commands)
+        module.exit_json(msg="VLAN exists and name is not correct, updating VLAN name", changed=True)
+    elif not vlan_exists:
+        commands.append('vlan ' + vlan_id)
+        commands.append('name ' + vlan_name)
+        eapi_conn.config(commands)
+        module.exit_json(msg="VLAN does not exist, creating VLAN", changed=True)
+
+
+if __name__ == '__main__':
+
+    main()
