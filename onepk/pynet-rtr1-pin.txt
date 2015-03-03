@@ -1,0 +1,3 @@
+# OneP Certificate Pinning Version 1.0
+50.242.94.227,SHA-1,BF:7F:99:7F:7E:BF:E8:6D:CC:9F:15:BB:88:39:C4:F7:74:DD:07:0D
+<EOF Marker>
