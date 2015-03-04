@@ -19,24 +19,33 @@ def main():
         port = 15002
     )
 
-    # call to NetworkDevice class
-    rtr1_obj = NetworkDevice(**pynet_rtr1)
+    pynet_rtr2 = dict(
+        ip = '50.242.94.227',
+        username = 'pyclass',
+        password = '88newclass',
+        pin_file = 'pynet-rtr2-pin.txt',
+        port = 8002
+    )
 
-    # creates connection to router
-    session_handle1 = rtr1_obj.establish_session()
+    for dev in (pynet_rtr1, pynet_rtr2):
+        # call to NetworkDevice class
+        rtr_obj = NetworkDevice(**dev)
 
-    # stuff we want to know
-    model = rtr1_obj.net_element.properties.product_id
-    serial_no = rtr1_obj.net_element.properties.SerialNo
+        # creates connection to router
+        session_handle = rtr_obj.establish_session()
 
-    # disconnect connection
-    rtr1_obj.disconnect()
+        # stuff we want to know
+        model = rtr_obj.net_element.properties.product_id
+        serial_no = rtr_obj.net_element.properties.SerialNo
 
-    print "\n\n"
-    print "Model: {}".format(model)
-    print "Serial Number: {}".format(serial_no)
-    print "\n"
+        print "\n\n"
+        print rtr_obj.net_element.properties.sys_name
+        print "Model: {}".format(model)
+        print "Serial Number: {}".format(serial_no)
+        print "\n"
 
+        # disconnect connection
+        rtr_obj.disconnect()
 
 if __name__ == '__main__':
 

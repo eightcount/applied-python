@@ -2,8 +2,7 @@
 
 from pprint import pprint
 from onepk_helper import NetworkDevice
-from onep.interfaces import NetworkInterface
-from onep.interfaces import InterfaceFilter
+from onep.vty import VtyService
 
 def main():
 
@@ -24,21 +23,21 @@ def main():
         port = 8002
     )
 
-    InterfaceTypes = NetworkInterface.InterfaceTypes
-    filter = InterfaceFilter(None,InterfaceTypes.ONEP_IF_TYPE_ETHERNET)
-
     for dev in (pynet_rtr1, pynet_rtr2):
 
         rtr_obj = NetworkDevice(**dev)
         session_handle = rtr_obj.establish_session()
 
-        intf = rtr_obj.net_element.get_interface_list(filter)[0]
-        int_stats = intf.get_statistics()
+        vty_service = VtyService(rtr_obj.net_element)
+        vty_service.open()
+
+        CMD = "show version"
+        cli = vty_service.write(CMD)
 
         print "\n\n"
         print rtr_obj.net_element.properties.sys_name
-        print "\n"
-        print int_stats
+        print cli
+ 
         rtr_obj.disconnect()
 
 if __name__ == '__main__':
